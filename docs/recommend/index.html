@@ -1,0 +1,89 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>我的支架倾角 · 第七小组</title><style>
+:root{color-scheme:dark;--bg:#100f0c;--panel:#191811;--line:#484131;--gold:#ffc262;--ink:#f1ece1;--muted:#c3bcae}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,sans-serif}main{max-width:1030px;margin:auto;padding:20px}header,nav{display:flex;align-items:center;gap:18px}header{justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:14px;color:var(--gold);font:16px Consolas,monospace}a{color:var(--muted)}h1{font-size:clamp(32px,5vw,56px);line-height:1.15;margin:34px 0 8px}h2{font-size:20px;margin:0 0 14px}p{margin:0 0 14px}.grid{display:grid;grid-template-columns:minmax(280px,0.85fr) minmax(280px,1.15fr);gap:16px;margin-top:25px}section{border:1px solid var(--line);padding:22px;background:var(--panel)}label{display:block;color:var(--muted);margin-bottom:12px}input,select,button{width:100%;margin-top:4px;font:inherit;padding:9px 11px;color:var(--ink);border:1px solid #756341;background:#11110d}button{background:var(--gold);color:#241a0a;cursor:pointer;font-weight:bold}button:disabled{opacity:.6}small,.note{font-size:14px;color:var(--muted)}.angle{font:normal clamp(44px,8vw,82px)/1.1 Consolas,monospace;color:var(--gold);display:block;margin:13px 0}.metrics{border-block:1px solid var(--line);padding:12px 0}#explain{white-space:pre-wrap}details{margin-top:20px;color:var(--muted)}summary{cursor:pointer}nav a{font:14px system-ui,sans-serif}@media(max-width:700px){.grid{grid-template-columns:1fr}main{padding:14px}section{padding:16px}}
+</style></head><body><main><header><strong>TILT LAB / 07</strong><nav><a href="../">开场</a><a href="../ask/">实验问答</a></nav></header><h1>我的支架倾角</h1><p>使用笔记本自带键盘打字时，从哪个档位开始试？</p><div class="grid">
+<section><h2>你的使用情况</h2><form id="profile">
+<label>年龄（岁）<input name="age" type="number" min="1" max="120" required placeholder="例如 20"></label>
+<label>身高（cm）<input name="height" type="number" min="50" max="250" step="any" required placeholder="例如 168"></label>
+<label>日均电脑使用时长（小时）<input name="hours" type="number" min="0.01" max="24" step="any" required placeholder="例如 3.5"></label>
+<label>最关注的使用体验<select name="goal"><option value="balance">整体舒适与姿势</option><option value="neck">颈部疲劳</option><option value="wrist">腕部疲劳</option></select></label>
+<small>在本页选档，按你的目标匹配智谱生成的试调建议。</small><button>获取我的建议</button></form></section>
+<section aria-live="polite"><h2>建议先试</h2><p id="message">填写使用情况，查看从哪一档开始、怎样试调。</p><div id="result" hidden><strong class="angle" id="angle"></strong>
+<h2>你可以这样试</h2><p id="explain"></p><p class="note" id="label"></p>
+<h2>为什么从这里开始</h2><p id="reason"></p><p class="note" id="scope"></p>
+<details><summary>查看本次选档依据</summary><p id="summary"></p><p class="metrics" id="metrics"></p><p id="reference"></p><p id="trade"></p></details></div></section></div>
+<details><summary>了解数据和计算方法</summary><p>样本为 20 名大学生，年龄 19–21 岁，身高 158–179 cm，日均电脑使用 1–10 小时。每人测试 0° 至 70° 的八个档位，每档打字 3 分钟。日均使用时长是背景资料，实验没有测量连续数小时使用的效果。</p><p>综合目标等权考虑 RULA 和舒适度。颈部或腕部优先时，相应疲劳指标的权重设为 4，前两项各为 1。这些权重是原型的设计选择。按参与者留一检验比较组平均和带正则化的个人资料模型；仅在同目标的留出误差较小时启用个人估算。超出任一样本范围时回到组平均。尚无独立样本验证。</p></details></main>
+<script>
+const MODEL={"groups": {"balance": {"base": [4.05, 4.525, 4.825, 4.675, 4.2, 3.525, 2.9, 2.225], "coef": [[-0.05816102478379621, -0.12282128764354572, -0.1037470311184476, -0.21139466059840464, -0.04878462802829563, 0.02313286964316446, -0.058092750251851455, 0.09496718686512497], [-0.007215901459676909, -0.005265858549451201, -0.002478538957028531, 0.040411886008387736, -0.06935273757834558, -0.08301355700947473, -0.014297367026433505, -0.1346965864263419], [-0.05006955615242049, 0.12505394150594265, 0.011246237439256117, -0.046106572137026645, -0.13039793338069242, -0.23517922567497823, -0.24108311987600586, -0.27888039485467303]], "useProfile": false, "loss": [0.5, 0.525]}, "neck": {"base": [4.449999999999999, 4.908333333333333, 5.175, 5.291666666666667, 5.033333333333333, 4.408333333333333, 4.066666666666667, 3.1750000000000003], "coef": [[-0.05205800303434791, -0.1538710038158437, -0.19447077190994805, -0.1755719587652691, -0.11488369118227727, 0.03111795746213914, -0.044332068016861334, -0.08075071476039218], [0.041818790957419825, 0.06481348403054096, 0.08083358787912041, 0.06282359006779221, -0.05500886320804431, -0.13780200160890604, -0.013123124023639974, -0.16092012024063906], [-0.1771365110327112, 0.0023385415873006872, -0.08927380853838202, -0.13435735239574534, -0.25704495094809193, -0.3584141856433123, -0.2630512719770977, -0.25408597248326925]], "useProfile": false, "loss": [0.5583333333333332, 0.7416666666666666]}, "wrist": {"base": [5.416666666666666, 5.475, 5.508333333333333, 4.791666666666666, 4.333333333333333, 3.341666666666666, 2.833333333333333, 2.108333333333333], "coef": [[0.02379473865771824, -0.02450857563326463, -0.03822664808708107, -0.015613525857180333, -0.04447720383270501, -0.034319504460901186, -0.031021234285158995, 0.0243111478778313], [0.128713890573397, 0.09675778718843972, -0.011345740109165439, -0.06341687658577459, -0.06302034079241944, -0.11361248015729836, -0.013853948208512318, -0.13668590241878567], [0.05926246612256368, 0.06458260208594098, -0.0640887297659784, -0.10616966969980116, -0.132092168088188, -0.37544981454537213, -0.30941690550253814, -0.2504959466853643]], "useProfile": true, "loss": [0.7583333333333332, 0.7]}}, "means": [[56.525, 4.089, 3.35, 2.55, 1.9, 4.15, 4.05], [55.55, 3.5335, 2.9, 2.5, 2.05, 4.75, 3.7], [57.7, 3.0335, 2.65, 2.35, 2.15, 5.05, 3.4], [50.3, 3.55, 2.4, 2.9, 3.15, 4.85, 3.5], [50.2, 3.5485, 2.55, 2.8, 3.6, 3.95, 3.55], [51.6, 4.145, 3.15, 3.5, 4.75, 3.25, 4.2], [50.35, 5.2795, 3.35, 3.85, 5.2, 2.85, 5.05], [50.9, 4.665, 4.35, 4.45, 5.95, 2.0, 5.55]], "bounds": [[19.0, 158.0, 1.0], [21.0, 179.0, 10.0]], "mu": [20.2, 166.15, 3.5], "sd": [0.6782329983125269, 6.190920771581559, 2.0124611797498106]};
+const goals = {balance:'综合舒适',neck:'优先减轻颈部疲劳',wrist:'优先减轻腕部疲劳'};
+function choose(values,goal){
+ const group=MODEL.groups[goal];
+ const outside=values.some((v,i)=>v<MODEL.bounds[0][i]||v>MODEL.bounds[1][i]);
+ const personalized=!outside&&group.useProfile;
+ const scores=group.base.map((mean,j)=>personalized?mean+values.reduce((sum,v,i)=>sum+(v-MODEL.mu[i])/MODEL.sd[i]*group.coef[i][j],0):mean);
+ const best=scores.indexOf(Math.max(...scores)),angle=best*10;
+ const [speed,err,neck,shoulder,wrist,comfort,rula]=MODEL.means[best];
+ const reference=outside?'你的资料中有项目超出样本范围，本次采用同一目标的组平均结果。':personalized?'腕部优先模型使用年龄、身高、日均时长估算各档表现。在 20 人逐人留出检验中，它仅略优于组平均，结果用于试调。':'在逐人留出检验中，加入年龄、身高和日均时长未改善这个目标的推荐，本次采用组平均结果。';
+ const tradeoff=goal==='neck'?'从 20° 调到 30°，颈部疲劳均值从 2.65 降至 2.40，腕部疲劳从 2.15 升至 3.15。':goal==='wrist'?'腕疲劳均值在 0° 为 1.90，在 20° 为 2.15，在 70° 达到 5.95。选档时也计入了整体舒适度和姿势评分。':'20° 的平均舒适度最高、RULA 总分最低。与 10°、30° 相比，这两项的配对差异均未达校正后的显著标准。';
+ return {angle,goal:goals[goal],personalized,outside,reference,tradeoff,rula,comfort,neck,wrist,speed,err};
+}
+function trialPlan(result,goal){
+ const {angle}=result;
+ const lower=angle>0;
+ const next=lower?angle-10:10;
+ const cue=lower?'如果打字时手腕比平时更累':'如果手腕放松，但看屏幕时总想低头';
+ const compare='用自带键盘敲同一小段文字。如果这档用着顺手，可以先保留。'+cue+'，再试 '+next+'°，比较两次的感受。';
+ const reason=goal==='balance'?'你优先考虑整体舒适。20 人试打时，20° 的舒适度均值为 5.05/7，在八档中最高；姿势评分为 3.40，在八档中最低。它适合作为比较其他档位的起点。':
+ goal==='neck'?'你最在意颈部感受。在 30° 和 20°，组平均颈部疲劳分别为 2.40 和 2.65，腕部疲劳分别为 3.15 和 2.15。先试 30° 时，值得同时留意手腕。':
+ '你最在意手腕。选档时，腕部疲劳的权重高于舒适度和姿势评分。'+angle+'° 的组平均腕部疲劳为 '+result.wrist.toFixed(2)+'/7，试打时可以用自己的手腕感受核对。';
+ return {next,cue,compare,reason};
+}
+
+const PREPARED={
+  "balance20": {
+    "model": "glm-4-flash-250414",
+    "advice": "将支架调到 20°，用键盘试打一小段。如果打字时手腕比平时更累，再试 10°。对比后选择更舒适的角度。"
+  },
+  "neck30": {
+    "model": "glm-4-flash-250414",
+    "advice": "把支架调到 30°，用键盘打一小段试试。如果打字时手腕比平时更累，再试 20° 对比一下。根据你的感受，选择更舒适的角度。"
+  },
+  "wrist0": {
+    "model": "glm-4-flash-250414",
+    "advice": "将支架调到 0°，用键盘试打一小段。当手腕放松但看屏幕时总想低头，再试 10°。对比后选择更符合手腕舒适度的角度。"
+  },
+  "wrist10": {
+    "model": "glm-4-flash-250414",
+    "advice": "把支架调到 10°，用键盘试打一小段。如果打字时手腕比平时更累，再试 0°。对比后选择更舒适的角度，优先减轻腕部疲劳。"
+  },
+  "wrist20": {
+    "model": "glm-4.7-flash",
+    "advice": "先把支架调到 20°，用自带键盘试打一小段。留意打字时手腕是否比平时更累。如果感觉手腕比平时更累，再试 10° 的档位。对比后选一个让你手腕最不累的角度。"
+  }
+}
+;
+const form=document.getElementById('profile'),result=document.getElementById('result');
+const set=(id,text)=>document.getElementById(id).textContent=text;
+let activeRequest;
+form.addEventListener('submit',async e=>{
+ e.preventDefault();activeRequest?.abort();activeRequest=null;
+ const data=Object.fromEntries(new FormData(form));for(const k of ['age','height','hours'])data[k]=Number(data[k]);
+ const r=choose([data.age,data.height,data.hours],data.goal),plan=trialPlan(r,data.goal);
+ const prepared=PREPARED[data.goal+r.angle];
+ set('message','');set('angle',r.angle+'°');set('summary',data.age+' 岁 · '+data.height+' cm · 日均 '+data.hours+' 小时 · '+r.goal);
+ set('metrics','该档 20 人实测均值：RULA '+r.rula.toFixed(2)+'，舒适度 '+r.comfort.toFixed(2)+'/7，颈部疲劳 '+r.neck.toFixed(2)+'/7，腕部疲劳 '+r.wrist.toFixed(2)+'/7。');
+ set('reference',r.reference);set('trade',r.tradeoff);set('reason',plan.reason);
+ set('label',prepared?'智谱 '+prepared.model+' · 按目标和档位匹配的预生成建议':'实验数据试调建议 · 正在获取 AI 补充');
+ set('explain',prepared?.advice||('先把支架调到 '+r.angle+'°。'+plan.compare));
+ set('scope',(r.outside?'你的资料超出实验样本范围，这次按同一目标的组平均选档。':'')+'你填的日均 '+data.hours+' 小时是使用背景。实验每档只试打了 3 分钟，长时间使用时仍要按当时的感受调整。');result.hidden=false;
+ if(prepared)return;
+ const controller=new AbortController();activeRequest=controller;
+ const timer=setTimeout(()=>controller.abort(),12000);
+ try{
+  const res=await fetch('https://tilt-lab-seven-ergonomics.usefulcrown8.chatgpt.site/api/recommend',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:controller.signal});
+  const extra=await res.json();
+  if(activeRequest===controller && res.ok && extra.ai){set('explain',extra.ai);set('label',extra.status);return}
+ }catch{}finally{clearTimeout(timer)}
+ if(activeRequest===controller)set('label','实验数据试调建议');
+});
+form.addEventListener('input',()=>{activeRequest?.abort();activeRequest=null;if(!result.hidden){result.hidden=true;set('message','资料已修改，请重新获取建议。')}});
+</script></body></html>

@@ -1,0 +1,42 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>我的支架倾角 · 第七小组</title><style>
+:root{color-scheme:dark;--bg:#100f0c;--panel:#191811;--line:#484131;--gold:#ffc262;--ink:#f1ece1;--muted:#c3bcae}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,sans-serif}main{max-width:1030px;margin:auto;padding:20px}header,nav{display:flex;align-items:center;gap:18px}header{justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:14px;color:var(--gold);font:16px Consolas,monospace}a{color:var(--muted)}h1{font-size:clamp(32px,5vw,56px);line-height:1.15;margin:34px 0 8px}h2{font-size:20px;margin:0 0 14px}p{margin:0 0 14px}.grid{display:grid;grid-template-columns:minmax(280px,0.85fr) minmax(280px,1.15fr);gap:16px;margin-top:25px}section{border:1px solid var(--line);padding:22px;background:var(--panel)}label{display:block;color:var(--muted);margin-bottom:12px}input,select,button{width:100%;margin-top:4px;font:inherit;padding:9px 11px;color:var(--ink);border:1px solid #756341;background:#11110d}button{background:var(--gold);color:#241a0a;cursor:pointer;font-weight:bold}button:disabled{opacity:.6}small,.note{font-size:14px;color:var(--muted)}.angle{font:normal clamp(44px,8vw,82px)/1.1 Consolas,monospace;color:var(--gold);display:block;margin:13px 0}.metrics{border-block:1px solid var(--line);padding:12px 0}#explain{white-space:pre-wrap}details{margin-top:20px;color:var(--muted)}summary{cursor:pointer}nav a{font:14px system-ui,sans-serif}@media(max-width:700px){.grid{grid-template-columns:1fr}main{padding:14px}section{padding:16px}}
+</style></head><body><main><header><strong>TILT LAB / 07</strong><nav><a href="/">开场</a><a href="/ask">实验问答</a></nav></header><h1>我的支架倾角</h1><p>使用笔记本自带键盘打字时，从哪个档位开始试？</p><div class="grid">
+<section><h2>你的使用情况</h2><form id="profile">
+<label>年龄（岁）<input name="age" type="number" min="1" max="120" required placeholder="例如 20"></label>
+<label>身高（cm）<input name="height" type="number" min="50" max="250" step="any" required placeholder="例如 168"></label>
+<label>日均电脑使用时长（小时）<input name="hours" type="number" min="0.01" max="24" step="any" required placeholder="例如 3.5"></label>
+<label>最关注的使用体验<select name="goal"><option value="balance">整体舒适与姿势</option><option value="neck">颈部疲劳</option><option value="wrist">腕部疲劳</option></select></label>
+<small>在本页选档，按你的目标匹配智谱生成的试调建议。</small><button>获取我的建议</button></form></section>
+<section aria-live="polite"><h2>建议先试</h2><p id="message">填写使用情况，查看从哪一档开始、怎样试调。</p><div id="result" hidden><strong class="angle" id="angle"></strong>
+<h2>你可以这样试</h2><p id="explain"></p><p class="note" id="label"></p>
+<h2>为什么从这里开始</h2><p id="reason"></p><p class="note" id="scope"></p>
+<details><summary>查看本次选档依据</summary><p id="summary"></p><p class="metrics" id="metrics"></p><p id="reference"></p><p id="trade"></p></details></div></section></div>
+<details><summary>了解数据和计算方法</summary><p>样本为 20 名大学生，年龄 19–21 岁，身高 158–179 cm，日均电脑使用 1–10 小时。每人测试 0° 至 70° 的八个档位，每档打字 3 分钟。日均使用时长是背景资料，实验没有测量连续数小时使用的效果。</p><p>综合目标等权考虑 RULA 和舒适度。颈部或腕部优先时，相应疲劳指标的权重设为 4，前两项各为 1。这些权重是原型的设计选择。按参与者留一检验比较组平均和带正则化的个人资料模型；仅在同目标的留出误差较小时启用个人估算。超出任一样本范围时回到组平均。尚无独立样本验证。</p></details></main>
+<script>
+/* shared recommendation data */
+const form=document.getElementById('profile'),result=document.getElementById('result');
+const set=(id,text)=>document.getElementById(id).textContent=text;
+let activeRequest;
+form.addEventListener('submit',async e=>{
+ e.preventDefault();activeRequest?.abort();activeRequest=null;
+ const data=Object.fromEntries(new FormData(form));for(const k of ['age','height','hours'])data[k]=Number(data[k]);
+ const r=choose([data.age,data.height,data.hours],data.goal),plan=trialPlan(r,data.goal);
+ const prepared=PREPARED[data.goal+r.angle];
+ set('message','');set('angle',r.angle+'°');set('summary',data.age+' 岁 · '+data.height+' cm · 日均 '+data.hours+' 小时 · '+r.goal);
+ set('metrics','该档 20 人实测均值：RULA '+r.rula.toFixed(2)+'，舒适度 '+r.comfort.toFixed(2)+'/7，颈部疲劳 '+r.neck.toFixed(2)+'/7，腕部疲劳 '+r.wrist.toFixed(2)+'/7。');
+ set('reference',r.reference);set('trade',r.tradeoff);set('reason',plan.reason);
+ set('label',prepared?'智谱 '+prepared.model+' · 按目标和档位匹配的预生成建议':'实验数据试调建议 · 正在获取 AI 补充');
+ set('explain',prepared?.advice||('先把支架调到 '+r.angle+'°。'+plan.compare));
+ set('scope',(r.outside?'你的资料超出实验样本范围，这次按同一目标的组平均选档。':'')+'你填的日均 '+data.hours+' 小时是使用背景。实验每档只试打了 3 分钟，长时间使用时仍要按当时的感受调整。');result.hidden=false;
+ if(prepared)return;
+ const controller=new AbortController();activeRequest=controller;
+ const timer=setTimeout(()=>controller.abort(),12000);
+ try{
+  const res=await fetch('/api/recommend',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:controller.signal});
+  const extra=await res.json();
+  if(activeRequest===controller && res.ok && extra.ai){set('explain',extra.ai);set('label',extra.status);return}
+ }catch{}finally{clearTimeout(timer)}
+ if(activeRequest===controller)set('label','实验数据试调建议');
+});
+form.addEventListener('input',()=>{activeRequest?.abort();activeRequest=null;if(!result.hidden){result.hidden=true;set('message','资料已修改，请重新获取建议。')}});
+</script></body></html>
