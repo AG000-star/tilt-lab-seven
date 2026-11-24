@@ -8,9 +8,9 @@
 <label>最关注的使用体验<select name="goal"><option value="balance">整体舒适与姿势</option><option value="neck">颈部疲劳</option><option value="wrist">腕部疲劳</option></select></label>
 <small>在本页选档，按你的目标匹配智谱生成的试调建议。</small><button>获取我的建议</button></form></section>
 <section aria-live="polite"><h2>建议先试</h2><p id="message">填写使用情况，查看从哪一档开始、怎样试调。</p><div id="result" hidden><strong class="angle" id="angle"></strong>
-<h2>你可以这样试</h2><p id="explain"></p><p class="note" id="label"></p>
-<h2>为什么从这里开始</h2><p id="reason"></p><p id="posture"></p><a href="#rula">看懂我们用的 RULA 评分表</a><p class="note" id="scope"></p>
-<details><summary>查看本次选档依据</summary><p id="summary"></p><p class="metrics" id="metrics"></p><p id="reference"></p><p id="trade"></p></details></div></section></div>
+<h2>你的倾角建议</h2><p id="explain"></p><p id="adviceBasis"></p><p class="note" id="label"></p>
+<a href="#rula">看懂我们用的 RULA 评分表</a><p class="note" id="scope"></p>
+<details><summary>查看本次选档依据</summary><p id="summary"></p><p id="reason"></p><p class="metrics" id="metrics"></p><p id="posture"></p><p id="reference"></p><p id="trade"></p></details></div></section></div>
 <section id="rula" style="margin-top:20px" aria-labelledby="rula-title">
 <h2 id="rula-title">实验用的 RULA 是怎样打分的？</h2>
 <p><strong>RULA（快速上肢评估法）</strong>是我们用来观察打字姿势的评分工具。评分员按实验记录表评姿势，参与者在每轮打字后另填舒适度和疲劳问卷。这两类分数分别反映观察到的姿势负荷和个人感受。</p>
@@ -34,6 +34,7 @@ form.addEventListener('submit',async e=>{
  const data=Object.fromEntries(new FormData(form));for(const k of ['age','height','hours'])data[k]=Number(data[k]);
  const r=choose([data.age,data.height,data.hours],data.goal),plan=trialPlan(r,data.goal);
  const prepared=PREPARED[data.goal+r.angle];
+ set('adviceBasis',postureAdvice(data.goal,r.angle,plan.next));
  set('message','');set('angle',r.angle+'°');set('summary',data.age+' 岁 · '+data.height+' cm · 日均 '+data.hours+' 小时 · '+r.goal);
  set('metrics','该档 20 人自评均值：舒适度 '+r.comfort.toFixed(2)+'/7，颈部疲劳 '+r.neck.toFixed(2)+'/7，腕部疲劳 '+r.wrist.toFixed(2)+'/7。');
  set('posture','按实验评分表，'+r.angle+'° 档的 RULA 平均为 '+r.rula.toFixed(2)+' 分（20 人汇总口径，含 4 人的样例记录）。分数较低，表示观察到的姿势负荷相对较小。');

@@ -8,9 +8,9 @@
 <label>最关注的使用体验<select name="goal"><option value="balance">整体舒适与姿势</option><option value="neck">颈部疲劳</option><option value="wrist">腕部疲劳</option></select></label>
 <small>在本页选档，按你的目标匹配智谱生成的试调建议。</small><button>获取我的建议</button></form></section>
 <section aria-live="polite"><h2>建议先试</h2><p id="message">填写使用情况，查看从哪一档开始、怎样试调。</p><div id="result" hidden><strong class="angle" id="angle"></strong>
-<h2>你可以这样试</h2><p id="explain"></p><p class="note" id="label"></p>
-<h2>为什么从这里开始</h2><p id="reason"></p><p id="posture"></p><a href="#rula">看懂我们用的 RULA 评分表</a><p class="note" id="scope"></p>
-<details><summary>查看本次选档依据</summary><p id="summary"></p><p class="metrics" id="metrics"></p><p id="reference"></p><p id="trade"></p></details></div></section></div>
+<h2>你的倾角建议</h2><p id="explain"></p><p id="adviceBasis"></p><p class="note" id="label"></p>
+<a href="#rula">看懂我们用的 RULA 评分表</a><p class="note" id="scope"></p>
+<details><summary>查看本次选档依据</summary><p id="summary"></p><p id="reason"></p><p class="metrics" id="metrics"></p><p id="posture"></p><p id="reference"></p><p id="trade"></p></details></div></section></div>
 <section id="rula" style="margin-top:20px" aria-labelledby="rula-title">
 <h2 id="rula-title">实验用的 RULA 是怎样打分的？</h2>
 <p><strong>RULA（快速上肢评估法）</strong>是我们用来观察打字姿势的评分工具。评分员按实验记录表评姿势，参与者在每轮打字后另填舒适度和疲劳问卷。这两类分数分别反映观察到的姿势负荷和个人感受。</p>
@@ -50,6 +50,20 @@ function trialPlan(result,goal){
  return {next,cue,compare,reason};
 }
 
+// Mean wrist-position scores from the RULA table, excluding example records 07–10.
+const wristPositionMeans=[1.6875,1.6875,1.75,1.9375,2.25,2.4375,3.125,3.25];
+function postureAdvice(goal,angle,next){
+ if(goal==='balance'){
+  return 'RULA（快速上肢评估法）把颈部、躯干和上肢的打字姿势合起来评分，分数越低，观察到的姿势负荷越小。剔除样例后的 16 人中，20° 的平均总分为 3.38，是八档中最低的。用 20° 作起点时，可以同时留意两件事：看屏幕是否总要低头，敲键盘时手背是否一直向上翘。';
+ }
+ if(goal==='neck'){
+  return '先试 30° 的依据是这一档的颈部自评疲劳均值最低。RULA（快速上肢评估法）还会观察手腕弯曲：剔除样例后的 16 人中，从 20° 升到 30°，手腕姿势分项均值从 1.75 升到 1.94。比较这两档时，除了感受脖子是否轻松，也看看手背是否更容易向上翘。';
+ }
+ const here=wristPositionMeans[angle/10].toFixed(2),other=wristPositionMeans[next/10].toFixed(2);
+ const comparison=here===other?'这两档的组均值相同，试打时按自己的手腕感受选。':'试打时留意哪一档更容易让手背与前臂自然成线。';
+ return 'RULA（快速上肢评估法）会观察敲键时手腕偏离中立位的程度。剔除样例后的 16 人中，'+angle+'° 和 '+next+'° 的手腕姿势分项均值分别为 '+here+' 和 '+other+'，较低的分数表示观察到的姿势更接近中立位。'+comparison;
+}
+
 const PREPARED={
   "balance20": {
     "model": "glm-4-flash-250414",
@@ -81,6 +95,7 @@ form.addEventListener('submit',async e=>{
  const data=Object.fromEntries(new FormData(form));for(const k of ['age','height','hours'])data[k]=Number(data[k]);
  const r=choose([data.age,data.height,data.hours],data.goal),plan=trialPlan(r,data.goal);
  const prepared=PREPARED[data.goal+r.angle];
+ set('adviceBasis',postureAdvice(data.goal,r.angle,plan.next));
  set('message','');set('angle',r.angle+'°');set('summary',data.age+' 岁 · '+data.height+' cm · 日均 '+data.hours+' 小时 · '+r.goal);
  set('metrics','该档 20 人自评均值：舒适度 '+r.comfort.toFixed(2)+'/7，颈部疲劳 '+r.neck.toFixed(2)+'/7，腕部疲劳 '+r.wrist.toFixed(2)+'/7。');
  set('posture','按实验评分表，'+r.angle+'° 档的 RULA 平均为 '+r.rula.toFixed(2)+' 分（20 人汇总口径，含 4 人的样例记录）。分数较低，表示观察到的姿势负荷相对较小。');

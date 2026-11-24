@@ -21,3 +21,17 @@ function trialPlan(result,goal){
  '你最在意手腕。选档时，腕部疲劳的权重高于舒适度和姿势评分。'+angle+'° 的组平均腕部疲劳为 '+result.wrist.toFixed(2)+'/7，试打时可以用自己的手腕感受核对。';
  return {next,cue,compare,reason};
 }
+
+// Mean wrist-position scores from the RULA table, excluding example records 07–10.
+const wristPositionMeans=[1.6875,1.6875,1.75,1.9375,2.25,2.4375,3.125,3.25];
+function postureAdvice(goal,angle,next){
+ if(goal==='balance'){
+  return 'RULA（快速上肢评估法）把颈部、躯干和上肢的打字姿势合起来评分，分数越低，观察到的姿势负荷越小。剔除样例后的 16 人中，20° 的平均总分为 3.38，是八档中最低的。用 20° 作起点时，可以同时留意两件事：看屏幕是否总要低头，敲键盘时手背是否一直向上翘。';
+ }
+ if(goal==='neck'){
+  return '先试 30° 的依据是这一档的颈部自评疲劳均值最低。RULA（快速上肢评估法）还会观察手腕弯曲：剔除样例后的 16 人中，从 20° 升到 30°，手腕姿势分项均值从 1.75 升到 1.94。比较这两档时，除了感受脖子是否轻松，也看看手背是否更容易向上翘。';
+ }
+ const here=wristPositionMeans[angle/10].toFixed(2),other=wristPositionMeans[next/10].toFixed(2);
+ const comparison=here===other?'这两档的组均值相同，试打时按自己的手腕感受选。':'试打时留意哪一档更容易让手背与前臂自然成线。';
+ return 'RULA（快速上肢评估法）会观察敲键时手腕偏离中立位的程度。剔除样例后的 16 人中，'+angle+'° 和 '+next+'° 的手腕姿势分项均值分别为 '+here+' 和 '+other+'，较低的分数表示观察到的姿势更接近中立位。'+comparison;
+}
