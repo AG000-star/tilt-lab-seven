@@ -9,8 +9,20 @@
 <small>在本页选档，按你的目标匹配智谱生成的试调建议。</small><button>获取我的建议</button></form></section>
 <section aria-live="polite"><h2>建议先试</h2><p id="message">填写使用情况，查看从哪一档开始、怎样试调。</p><div id="result" hidden><strong class="angle" id="angle"></strong>
 <h2>你可以这样试</h2><p id="explain"></p><p class="note" id="label"></p>
-<h2>为什么从这里开始</h2><p id="reason"></p><p class="note" id="scope"></p>
+<h2>为什么从这里开始</h2><p id="reason"></p><p id="posture"></p><a href="#rula">看懂我们用的 RULA 评分表</a><p class="note" id="scope"></p>
 <details><summary>查看本次选档依据</summary><p id="summary"></p><p class="metrics" id="metrics"></p><p id="reference"></p><p id="trade"></p></details></div></section></div>
+<section id="rula" style="margin-top:20px" aria-labelledby="rula-title">
+<h2 id="rula-title">实验用的 RULA 是怎样打分的？</h2>
+<p><strong>RULA（快速上肢评估法）</strong>是我们用来观察打字姿势的评分工具。评分员按实验记录表评姿势，参与者在每轮打字后另填舒适度和疲劳问卷。这两类分数分别反映观察到的姿势负荷和个人感受。</p>
+<ol>
+<li><strong>看录像，分两组评姿势。</strong>从打字稳定时的录像选取代表画面。A 组看上臂、前臂、手腕弯曲和手腕扭转，例如手腕是否接近中立位。B 组看颈部、躯干和腿部，例如低头程度、躯干有无前倾、双脚是否有支撑。</li>
+<li><strong>查表得到总分。</strong>分别查表 A 和表 B，得到两组姿势分。本实验对重复打字统一计肌肉使用 +1、外部负荷 0。将调整后的 A、B 两个得分交叉查表 C，得到一次观察的总分（1–7 分）。</li>
+<li><strong>读分数，判断是否需要调整。</strong>对单次姿势观察，1–2 分表示在避免长期保持或重复的条件下可接受，3–4 分提示进一步调查、可能需调整，5–6 分提示尽快调查并调整，7 分提示立即调查并调整。页面上的小数是该档位多人的平均值，行动等级按单次观察的整数分判读。</li>
+</ol>
+<p><strong>这怎样影响推荐？</strong>选“整体舒适与姿势”时，系统同时考虑较低的 RULA 和较高的舒适度，两项等权。选择颈部或腕部优先时，对应部位的自评疲劳权重更高，RULA 仍参与选档。</p>
+<details><summary>20° 档的 3.40 分从哪里来？</summary><p>当前选档沿用汇总表的 20 人口径，20° 档 RULA 均值为 3.40。原表标注 07–10 号的双评及共识值为合成样例。剔除这 4 人后，其余 16 人的该档均值为 3.38。20 人的整体舒适度均值 5.05/7 来自另一张主观问卷。</p></details>
+<p class="note"><a href="https://pubmed.ncbi.nlm.nih.gov/15676903/">RULA 方法原文 · McAtamney 与 Corlett（1993）</a></p>
+</section>
 <details><summary>了解数据和计算方法</summary><p>样本为 20 名大学生，年龄 19–21 岁，身高 158–179 cm，日均电脑使用 1–10 小时。每人测试 0° 至 70° 的八个档位，每档打字 3 分钟。日均使用时长是背景资料，实验没有测量连续数小时使用的效果。</p><p>综合目标等权考虑 RULA 和舒适度。颈部或腕部优先时，相应疲劳指标的权重设为 4，前两项各为 1。这些权重是原型的设计选择。按参与者留一检验比较组平均和带正则化的个人资料模型；仅在同目标的留出误差较小时启用个人估算。超出任一样本范围时回到组平均。尚无独立样本验证。</p></details></main>
 <script>
 /* shared recommendation data */
@@ -23,7 +35,8 @@ form.addEventListener('submit',async e=>{
  const r=choose([data.age,data.height,data.hours],data.goal),plan=trialPlan(r,data.goal);
  const prepared=PREPARED[data.goal+r.angle];
  set('message','');set('angle',r.angle+'°');set('summary',data.age+' 岁 · '+data.height+' cm · 日均 '+data.hours+' 小时 · '+r.goal);
- set('metrics','该档 20 人实测均值：RULA '+r.rula.toFixed(2)+'，舒适度 '+r.comfort.toFixed(2)+'/7，颈部疲劳 '+r.neck.toFixed(2)+'/7，腕部疲劳 '+r.wrist.toFixed(2)+'/7。');
+ set('metrics','该档 20 人自评均值：舒适度 '+r.comfort.toFixed(2)+'/7，颈部疲劳 '+r.neck.toFixed(2)+'/7，腕部疲劳 '+r.wrist.toFixed(2)+'/7。');
+ set('posture','按实验评分表，'+r.angle+'° 档的 RULA 平均为 '+r.rula.toFixed(2)+' 分（20 人汇总口径，含 4 人的样例记录）。分数较低，表示观察到的姿势负荷相对较小。');
  set('reference',r.reference);set('trade',r.tradeoff);set('reason',plan.reason);
  set('label',prepared?'智谱 '+prepared.model+' · 按目标和档位匹配的预生成建议':'实验数据试调建议 · 正在获取 AI 补充');
  set('explain',prepared?.advice||('先把支架调到 '+r.angle+'°。'+plan.compare));
