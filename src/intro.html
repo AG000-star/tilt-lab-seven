@@ -145,11 +145,27 @@
   #final.show::after{animation:edgeRight .48s cubic-bezier(.7,0,.2,1) forwards;}
   @keyframes edgeLeft{0%{left:50%;opacity:1;}90%{left:0;opacity:1;}100%{left:0;opacity:0;}}
   @keyframes edgeRight{0%{right:50%;opacity:1;}90%{right:0;opacity:1;}100%{right:0;opacity:0;}}
-  #hint{position:fixed;left:0;right:0;bottom:8px;z-index:700;text-align:center;font-size:10px;letter-spacing:.25em;color:var(--text-faint);opacity:0;transition:opacity .6s;pointer-events:none;text-transform:uppercase;}
-  #hint.show{opacity:1;pointer-events:auto;} #hint a{display:none;color:var(--amber-b);background:#151009;border:1px solid var(--amber);padding:8px 16px;font-size:15px;text-decoration:none} #hint.show a{display:inline-block}
+  .entry{position:fixed;inset:0 0 auto;z-index:2100;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px clamp(14px,4vw,64px);background:#100e0a;border-bottom:1px solid #795622;color:#fff0d1;font:16px/1.4 system-ui,sans-serif}
+  .entry strong{display:block;font-size:20px}.entry p{color:#d6c9ad;font-size:14px}.entry nav{display:flex;gap:10px}
+  .entry a,.entry button,#angleCompare button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 16px;border:1px solid #977040;border-radius:4px;background:#211b12;color:#ffe1ad;font:600 16px/1.3 system-ui,sans-serif;cursor:pointer;text-decoration:none}
+  .entry .primary{color:#201507;background:#ffbf4d;border-color:#ffcf80}.entry :is(a,button):hover{filter:brightness(1.16)}.entry :focus-visible,#angleCompare :focus-visible{outline:3px solid white;outline-offset:2px}
+  #angleCompare{color-scheme:dark;position:fixed;inset:0;margin:auto;width:min(510px,94vw);max-height:90dvh;overflow:auto;padding:24px;background:#17130e;color:#f8ebd6;border:1px solid #987035;border-radius:6px;font:16px/1.55 system-ui,sans-serif}
+  #angleCompare::backdrop{background:#000c}#angleCompare h2{font-size:24px;color:#ffca68}#angleCompare p{margin:8px 0 16px}#angleCompare label{display:grid;gap:4px}#angleCompare .angles{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  #angleCompare select{width:100%;padding:8px;font:inherit;color:#fff1d9;background:#211c15;border:1px solid #90764e}#angleCompare table{width:100%;margin:14px 0;border-collapse:collapse;font-variant-numeric:tabular-nums}#angleCompare :is(th,td){padding:8px 4px;text-align:right;border-bottom:1px solid #4e402c}#angleCompare th:first-child{text-align:left}
+  @media(max-width:700px){.entry{display:grid;gap:8px;padding:9px 14px}.entry strong{font-size:18px}.entry nav{gap:8px}.entry nav>*{flex:1;padding:7px;font-size:15px}.boot-stage{padding-top:100px}}
 </style>
 </head>
 <body>
+<header class="entry">
+  <div><strong>笔记本支架倾角实验室</strong><p>用自带键盘打字，支架调到几度更舒服？</p></div>
+  <nav aria-label="实验入口"><a class="primary" href="/recommend">获取我的倾角建议</a><button id="compareOpen" type="button" aria-haspopup="dialog">比较八档倾角</button></nav>
+</header>
+<dialog id="angleCompare" aria-labelledby="compareTitle">
+  <h2 id="compareTitle">比较八档倾角</h2><p>选择两个档位，比较 20 名同学短时打字后的平均感受。</p>
+  <div class="angles"><label>第一个档位<select id="angleA"></select></label><label>第二个档位<select id="angleB"></select></label></div>
+  <div aria-live="polite"><table><thead><tr><th scope="col">自评指标</th><th scope="col" id="headA"></th><th scope="col" id="headB"></th></tr></thead><tbody id="metricRows"></tbody></table></div>
+  <p>每项满分 7 分。疲劳分越低越好，舒适度分越高越好。</p><form method="dialog"><button>返回首页</button></form>
+</dialog>
 
 <div id="boot">
   <div class="boot-stage">
@@ -249,7 +265,34 @@
 
 <div id="dim"></div>
 <div id="final">倾角实验就绪（人因工程）</div>
-<div id="hint"><a href="/recommend">获取我的倾角建议</a></div>
+<script>
+(() => {
+  const means = /* comparison data */ [];
+  const dialog = document.getElementById('angleCompare');
+  const first = document.getElementById('angleA'), second = document.getElementById('angleB');
+  for (const select of [first,second]) {
+    means.forEach((_, i) => select.add(new Option(i * 10 + '°', i)));
+    select.addEventListener('change', renderComparison);
+  }
+  first.value = '2'; second.value = '3';
+  function renderComparison() {
+    const a = Number(first.value), b = Number(second.value);
+    document.getElementById('headA').textContent = a * 10 + '°';
+    document.getElementById('headB').textContent = b * 10 + '°';
+    const rows = ['颈部疲劳','腕部疲劳','整体舒适度'].map((label,i) => {
+      const row = document.createElement('tr');
+      const heading = document.createElement('th');
+      heading.scope = 'row'; heading.textContent = label; row.append(heading);
+      for (const index of [a,b]) row.insertCell().textContent = means[index][i].toFixed(2);
+      return row;
+    });
+    document.getElementById('metricRows').replaceChildren(...rows);
+  }
+  document.getElementById('compareOpen').addEventListener('click', () => {
+    renderComparison(); dialog.showModal();
+  });
+})();
+</script>
 
 <script>
 (() => {
@@ -312,6 +355,7 @@ async function bootUp(){
 }
 
 window.addEventListener("keydown", e => {
+  if(e.target.closest?.('button,a,select,dialog'))return;
   if (e.code === "Space" || e.key === " "){ e.preventDefault(); bootUp(); }
 });
 
@@ -762,7 +806,6 @@ async function phaseFinish(){
   await sleep(200);
   $("#final").classList.add("show");
   await sleep(900);
-  $("#hint").classList.add("show");
 }
 
 async function run(){

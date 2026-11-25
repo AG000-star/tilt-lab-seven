@@ -12,7 +12,7 @@ const api = 'https://tilt-lab-seven-ergonomics.usefulcrown8.chatgpt.site';
 const selection = 'const MODEL=' + read('src/model.json') + ';\n' + read('src/selection.mjs');
 const prepared = 'const PREPARED=' + read('src/prepared-advice.json') + ';';
 const pages = {
-  '/': read('src/intro.html'),
+  '/': read('src/intro.html').replace('/* comparison data */ []', JSON.stringify(JSON.parse(read('src/model.json')).means.map(row => [row[2],row[4],row[5]]))),
   '/recommend': read('src/recommend.html').replace('/* shared recommendation data */', () => selection + '\n' + prepared),
   '/ask': read('src/ask.html'),
   '/LICENSE.txt': read('LICENSE.txt'),
